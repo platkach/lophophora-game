@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lophophora Guessing Game</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background: #f3f7f3;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #scoreboard {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    #layout {
+      display: flex;
+      gap: 25px;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    #history-panel {
+      width: 160px;
+      flex-shrink: 0;
+      border-right: 2px solid #ddd;
+      padding-right: 10px;
+      max-height: 85vh;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .history-item {
+      border-bottom: 1px solid #ccc;
+      padding: 6px 0;
+    }
+
+    .history-item img {
+      width: 100%;
+      max-height: 90px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+
+    .history-correct {
+      background: #d9f5dc;
+    }
+
+    .history-wrong {
+      background: #f9d6d6;
+    }
+
+    #game-panel {
+      width: 70%;
+      min-width: 300px;
+      text-align: center;
+    }
+
+    #current img {
+      max-width: 95%;
+      max-height: 70vh;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      margin: 8px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .correct {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .wrong {
+      background-color: #e53935;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Guess the Lophophora Species</h1>
+
+<div id="scoreboard">
+  Score: <b id="score">0</b> |
+  Streak: <b id="streak">1</b>
+</div>
+
+<div id="layout">
+
+  <div id="history-panel">
+    <h3>History</h3>
+    <div id="history"></div>
+  </div>
+
+  <div id="game-panel">
+    <h2>Current</h2>
+    <div id="current">Loading...</div>
+    <div id="buttons"></div>
+  </div>
+
+</div>
+
+<script>
+/* ============================
+   SPECIES POOL
+============================ */
+
+const speciesPool = [
+  { name: "Lophophora williamsii", taxon: 164777 },
+  { name: "Lophophora fricii", taxon: 439808 },
+  { name: "Lophophora diffusa", taxon: 204983 },
+  { name: "Lophophora koehresii", taxon: 637224 },
+  { name: "Lophophora alberto-vojtechii", taxon: 502521 }
+];
+
+let correctSpecies = "";
+let observationURL = "";
+let currentHTML = "";
+let history = [];
+let locked = false;
+let seen = new Set();
+
+let streak = 1;
+let score = 0;
+
+/* ============================
+   LOAD RANDOM OBSERVATION
+============================ */
+
+async function loadRandom() {
+  locked = false;
+
+  const currentDiv = document.getElementById("current");
+  const buttonsDiv = document.getElementById("buttons");
+
+  currentDiv.innerHTML = "Loading...";
+  buttonsDiv.innerHTML = "";
+
+  const chosen =
+    speciesPool[Math.floor(Math.random() * speciesPool.length)];
+
+  const url =
+    `https://api.inaturalist.org/v1/observations` +
+    `?taxon_id=${chosen.taxon}` +
+    `&quality_grade=research` +
+    `&identifications_count=5` +
+    `&photos=true` +
+    `&per_page=100`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    const results = data.results;
+
+    if (!results || results.length === 0) {
+      loadRandom();
+      return;
+    }
+
+    let obs;
+    let tries = 0;
+
+    do {
+      obs = results[Math.floor(Math.random() * results.length)];
+      tries++;
+    } while (seen.has(obs.id) && tries < 25);
+
+    seen.add(obs.id);
+
+    if (!obs || !obs.photos.length || !obs.taxon) {
+      loadRandom();
+      return;
+    }
+
+    const photo = obs.photos[0].url.replace("square", "large");
+
+    currentHTML = `<img src="${photo}">`;
+    currentDiv.innerHTML = currentHTML;
+
+    correctSpecies = obs.taxon.name;
+    observationURL = obs.uri;
+
+    speciesPool.forEach(s => {
+      const btn = document.createElement("button");
+      btn.textContent = s.name;
+      btn.onclick = () => checkAnswer(btn, s.name);
+      buttonsDiv.appendChild(btn);
+    });
+
+  } catch (err) {
+    currentDiv.innerHTML = "Error loading observation.";
+    console.error(err);
+  }
+}
+
+/* ============================
+   HISTORY
+============================ */
+
+function renderHistory() {
+  const historyDiv = document.getElementById("history");
+  historyDiv.innerHTML = "";
+
+  history.forEach(item => {
+    const div = document.createElement("div");
+    div.className =
+      "history-item " +
+      (item.correct ? "history-correct" : "history-wrong");
+
+    div.innerHTML = `
+      ${item.html}
+      <div><i>${item.species}</i></div>
+      <a href="${item.url}" target="_blank">View</a>
+    `;
+
+    historyDiv.appendChild(div);
+  });
+}
+
+/* ============================
+   CHECK ANSWER
+============================ */
+
+function checkAnswer(button, guess) {
+  if (locked) return;
+  locked = true;
+
+  const allButtons =
+    document.querySelectorAll("#buttons button");
+
+  allButtons.forEach(b => b.disabled = true);
+
+  const isCorrect = guess === correctSpecies;
+
+  if (isCorrect) {
+    button.classList.add("correct");
+    score += streak;
+    streak++;
+  } else {
+    button.classList.add("wrong");
+    streak = 1;
+
+    allButtons.forEach(b => {
+      if (b.textContent === correctSpecies) {
+        b.classList.add("correct");
+      }
+    });
+  }
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+
+  history.unshift({
+    html: currentHTML,
+    species: correctSpecies,
+    url: observationURL,
+    correct: isCorrect
+  });
+
+  if (history.length > 10) history.pop();
+
+  renderHistory();
+
+  setTimeout(loadRandom, 1500);
+}
+
+loadRandom();
+</script>
+
+</body>
+</html>
