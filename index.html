@@ -1,99 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lophophora Guessing Game</title>
+<meta charset="UTF-8">
+<title>Guess the Lophophora Species</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background: #f3f7f3;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
-    h1 {
-      text-align: center;
-    }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #f3f7f3;
+}
 
-    #scoreboard {
-      text-align: center;
-      font-size: 18px;
-      margin-bottom: 15px;
-    }
+/* ======================
+   DESKTOP LAYOUT
+====================== */
 
-    #layout {
-      display: flex;
-      gap: 25px;
-      justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
+body {
+  overflow: hidden;
+}
 
-    #history-panel {
-      width: 160px;
-      flex-shrink: 0;
-      border-right: 2px solid #ddd;
-      padding-right: 10px;
-      max-height: 85vh;
-      overflow-y: auto;
-      text-align: left;
-      font-size: 12px;
-    }
+h1 {
+  margin: 6px 0;
+  text-align: center;
+}
 
-    .history-item {
-      border-bottom: 1px solid #ccc;
-      padding: 6px 0;
-    }
+#scoreboard {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
 
-    .history-item img {
-      width: 100%;
-      max-height: 90px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-bottom: 4px;
-    }
+#layout {
+  display: flex;
+  height: calc(100vh - 90px);
+}
 
-    .history-correct {
-      background: #d9f5dc;
-    }
+/* ======================
+   HISTORY
+====================== */
 
-    .history-wrong {
-      background: #f9d6d6;
-    }
+#history-panel {
+  width: 180px;
+  padding: 8px;
+  border-right: 2px solid #ddd;
+  overflow-y: auto;
+  font-size: 12px;
+}
 
-    #game-panel {
-      width: 70%;
-      min-width: 300px;
-      text-align: center;
-    }
+.history-item img {
+  width: 100%;
+  border-radius: 6px;
+}
 
-    #current img {
-      max-width: 95%;
-      max-height: 60vh;
-      object-fit: contain;
-    }
+/* ======================
+   GAME PANEL
+====================== */
 
-    button {
-      margin: 8px;
-      padding: 12px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+#game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    #buttons {
-      margin-top: 10px;
-    }
+/* image area = FIXED SPACE */
+#current {
+  height: 65%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    .correct {
-      background-color: #4caf50;
-      color: white;
-    }
+#current img {
+  max-width: 95%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
 
-    .wrong {
-      background-color: #e53935;
-      color: white;
-    }
-  </style>
+/* buttons always visible */
+#buttons {
+  height: 35%;
+  width: 90%;
+  padding-bottom: 10px;
+  overflow: hidden;
+}
+
+button {
+  width: 100%;
+  padding: 9px;
+  margin: 5px 0;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.correct {
+  background: #4caf50;
+  color: white;
+}
+
+.wrong {
+  background: #e53935;
+  color: white;
+}
+
+/* ======================
+   MOBILE
+====================== */
+
+@media (max-width: 800px) {
+
+  body {
+    overflow-y: auto;
+  }
+
+  #layout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  #history-panel {
+    width: 100%;
+    border-right: none;
+    border-top: 2px solid #ddd;
+    max-height: 40vh;
+  }
+
+  #current {
+    height: auto;
+  }
+
+  #current img {
+    max-height: 60vh;
+  }
+
+  #buttons {
+    height: auto;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -108,22 +159,25 @@
 <div id="layout">
 
   <div id="history-panel">
-    <h3>History</h3>
+    <b>History</b>
     <div id="history"></div>
   </div>
 
   <div id="game-panel">
-    <h2>Current</h2>
-    <div id="current">Loading...</div>
-    <div id="buttons"></div>
-  </div>
 
+    <h2>Current</h2>
+
+    <div id="current">Loading…</div>
+
+    <div id="buttons"></div>
+
+  </div>
 </div>
 
 <script>
-/* ============================
-   SPECIES POOL
-============================ */
+/* ======================
+   TAXA
+====================== */
 
 const speciesPool = [
   { name: "Lophophora williamsii", taxon: 164777 },
@@ -133,138 +187,126 @@ const speciesPool = [
   { name: "Lophophora alberto-vojtechii", taxon: 502521 }
 ];
 
+let queue = [];
+let seen = new Set();
 let correctSpecies = "";
 let observationURL = "";
 let currentHTML = "";
-let history = [];
 let locked = false;
-let seen = new Set();
 
-let streak = 1;
 let score = 0;
+let streak = 1;
 
-/* ============================
-   LOAD RANDOM OBSERVATION
-============================ */
+/* normalize subspecies */
+function normalize(name) {
+  return name
+    .toLowerCase()
+    .replace("lophophora", "")
+    .trim()
+    .split(" ")[0];
+}
+
+/* ======================
+   FETCH
+====================== */
+
+async function refillQueue() {
+  queue = [];
+
+  for (const s of speciesPool) {
+    const url =
+      `https://api.inaturalist.org/v1/observations` +
+      `?taxon_id=${s.taxon}` +
+      `&quality_grade=research` +
+      `&photos=true` +
+      `&identifications_count=5` +
+      `&per_page=200`;
+
+    const r = await fetch(url);
+    const d = await r.json();
+
+    d.results.forEach(o => {
+      if (o.photos?.length) queue.push(o);
+    });
+  }
+
+  shuffle(queue);
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+/* ======================
+   LOAD
+====================== */
 
 async function loadRandom() {
   locked = false;
 
-  const currentDiv = document.getElementById("current");
-  const buttonsDiv = document.getElementById("buttons");
-
-  currentDiv.innerHTML = "Loading...";
-  buttonsDiv.innerHTML = "";
-
-  const chosen =
-    speciesPool[Math.floor(Math.random() * speciesPool.length)];
-
-  const url =
-    `https://api.inaturalist.org/v1/observations` +
-    `?taxon_id=${chosen.taxon}` +
-    `&quality_grade=research` +
-    `&identifications_count=5` +
-    `&photos=true` +
-    `&per_page=100`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    const results = data.results;
-
-    if (!results || results.length === 0) {
-      loadRandom();
-      return;
-    }
-
-    let obs;
-    let tries = 0;
-
-    do {
-      obs = results[Math.floor(Math.random() * results.length)];
-      tries++;
-    } while (seen.has(obs.id) && tries < 25);
-
-    seen.add(obs.id);
-
-    if (!obs || !obs.photos.length || !obs.taxon) {
-      loadRandom();
-      return;
-    }
-
-    const photo = obs.photos[0].url.replace("square", "large");
-
-    currentHTML = `<img src="${photo}">`;
-    currentDiv.innerHTML = currentHTML;
-
-    correctSpecies = obs.taxon.name;
-    observationURL = obs.uri;
-
-    speciesPool.forEach(s => {
-      const btn = document.createElement("button");
-      btn.textContent = s.name;
-      btn.onclick = () => checkAnswer(btn, s.name);
-      buttonsDiv.appendChild(btn);
-    });
-
-  } catch (err) {
-    currentDiv.innerHTML = "Error loading observation.";
-    console.error(err);
+  if (queue.length === 0) {
+    seen.clear();
+    await refillQueue();
   }
-}
 
-/* ============================
-   HISTORY
-============================ */
+  let obs;
 
-function renderHistory() {
-  const historyDiv = document.getElementById("history");
-  historyDiv.innerHTML = "";
+  do {
+    obs = queue.shift();
+  } while (seen.has(obs.id) && queue.length);
 
-  history.forEach(item => {
-    const div = document.createElement("div");
-    div.className =
-      "history-item " +
-      (item.correct ? "history-correct" : "history-wrong");
+  seen.add(obs.id);
 
-    div.innerHTML = `
-      ${item.html}
-      <div><i>${item.species}</i></div>
-      <a href="${item.url}" target="_blank">View</a>
-    `;
+  const photo = obs.photos[0].url.replace("square", "large");
 
-    historyDiv.appendChild(div);
+  document.getElementById("current").innerHTML =
+    `<img src="${photo}">`;
+
+  correctSpecies = obs.taxon.name;
+  observationURL = obs.uri;
+  currentHTML = `<img src="${photo}">`;
+
+  const buttons = document.getElementById("buttons");
+  buttons.innerHTML = "";
+
+  speciesPool.forEach(s => {
+    const b = document.createElement("button");
+    b.textContent = s.name;
+    b.onclick = () => checkAnswer(b, s.name);
+    buttons.appendChild(b);
   });
 }
 
-/* ============================
-   CHECK ANSWER
-============================ */
+/* ======================
+   ANSWER
+====================== */
 
-function checkAnswer(button, guess) {
+function checkAnswer(btn, guess) {
   if (locked) return;
   locked = true;
 
-  const allButtons =
-    document.querySelectorAll("#buttons button");
+  const correct =
+    normalize(guess) === normalize(correctSpecies);
 
-  allButtons.forEach(b => b.disabled = true);
+  document.querySelectorAll("#buttons button")
+    .forEach(b => b.disabled = true);
 
-  const isCorrect = guess === correctSpecies;
-
-  if (isCorrect) {
-    button.classList.add("correct");
+  if (correct) {
+    btn.classList.add("correct");
     score += streak;
     streak++;
   } else {
-    button.classList.add("wrong");
+    btn.classList.add("wrong");
     streak = 1;
 
-    allButtons.forEach(b => {
-      if (b.textContent === correctSpecies) {
-        b.classList.add("correct");
-      }
-    });
+    document.querySelectorAll("#buttons button")
+      .forEach(b => {
+        if (normalize(b.textContent) === normalize(correctSpecies))
+          b.classList.add("correct");
+      });
   }
 
   document.getElementById("score").textContent = score;
@@ -273,18 +315,45 @@ function checkAnswer(button, guess) {
   history.unshift({
     html: currentHTML,
     species: correctSpecies,
-    url: observationURL,
-    correct: isCorrect
+    url: observationURL
   });
 
   if (history.length > 10) history.pop();
-
   renderHistory();
 
-  setTimeout(loadRandom, 1500);
+  setTimeout(loadRandom, 1400);
 }
 
-loadRandom();
+/* ======================
+   HISTORY
+====================== */
+
+let history = [];
+
+function renderHistory() {
+  const h = document.getElementById("history");
+  h.innerHTML = "";
+
+  history.forEach(i => {
+    const d = document.createElement("div");
+    d.className = "history-item";
+    d.innerHTML = `
+      ${i.html}
+      <div><i>${i.species}</i></div>
+      <a href="${i.url}" target="_blank">View</a>
+    `;
+    h.appendChild(d);
+  });
+}
+
+/* ======================
+   START
+====================== */
+
+(async () => {
+  await refillQueue();
+  loadRandom();
+})();
 </script>
 
 </body>
