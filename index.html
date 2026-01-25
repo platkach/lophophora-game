@@ -69,7 +69,7 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
 
 .history-item img { width: 100%; height: 140px; object-fit: cover; border-radius: 4px; display: block; }
 
-/* GAME */
+/* GAME - NO CHANGES TO IMAGE LOGIC */
 #game-panel {
   flex: 1;
   display: flex;
@@ -79,15 +79,14 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
   overflow: hidden;
 }
 
-/* Updated current container to allow panning/scrolling */
 #current {
   flex: 1; 
   width: 100%;
-  overflow: auto; /* Allows the finger-drag/scroll */
-  display: block; /* Changed from flex to allow natural image overflow */
+  overflow: auto;
+  display: block;
   padding: 10px;
   min-height: 0;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
   cursor: grab;
 }
 
@@ -98,19 +97,20 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
   margin: 0 auto;
   min-width: 100%;
   min-height: 100%;
-  /* Contain ensures we don't lose the plant, 
-     but min-width/height keeps it fill-ready */
   object-fit: contain; 
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+/* BUTTONS: UPDATED FOR DESKTOP HORIZONTAL */
 #buttons {
   width: 100%;
-  max-width: 500px;
+  max-width: 1200px; /* Increased to allow buttons to spread out */
   padding: 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Horizontal on desktop */
+  flex-wrap: wrap;    /* Wrap if window gets narrow */
+  justify-content: center;
   gap: 8px;
   flex-shrink: 0;
   background: #f3f7f3;
@@ -118,9 +118,10 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
 }
 
 button.answer-btn {
-  width: 100%;
+  flex: 1;            /* Buttons fill row equally */
+  min-width: 160px;   /* Minimum size so they don't squash */
   padding: 12px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -144,8 +145,15 @@ button:active { transform: scale(0.98); }
   .history-item-link { min-width: 100px; width: 100px; margin-bottom: 0; }
   .history-item img { height: 70px; }
   .history-item div { font-size: 9px; line-height: 1.1; margin-top: 4px; }
-  #buttons { padding: 5px 10px 8px 10px; gap: 5px; }
-  button.answer-btn { padding: 10px; font-size: 14px; border-radius: 6px; }
+
+  /* MOBILE BUTTONS: BACK TO VERTICAL */
+  #buttons { 
+    flex-direction: column; 
+    padding: 5px 10px 8px 10px; 
+    gap: 5px; 
+    max-width: 500px; 
+  }
+  button.answer-btn { width: 100%; padding: 10px; font-size: 14px; border-radius: 6px; }
 }
 </style>
 </head>
