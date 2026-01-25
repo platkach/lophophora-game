@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Guess the Lophophora Species</title>
 
 <style>
@@ -14,47 +15,56 @@ html, body {
   margin: 0;
   height: 100%;
   background: #f3f7f3;
-}
-
-/* ======================
-   DESKTOP LAYOUT
-====================== */
-
-body {
-  overflow: hidden;
+  overflow: hidden; /* Prevent body scroll */
 }
 
 h1 {
-  margin: 6px 0;
+  margin: 0;
+  padding: 10px 0 5px 0;
   text-align: center;
+  font-size: 1.5rem;
+  height: 40px;
 }
 
 #scoreboard {
   text-align: center;
   font-size: 14px;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  height: 20px;
 }
 
 #layout {
   display: flex;
-  height: calc(100vh - 90px);
+  /* Use dvh for mobile address bar compatibility, fallback to vh */
+  height: calc(100vh - 70px); 
+  height: calc(100dvh - 70px);
+  width: 100%;
 }
 
 /* ======================
-   HISTORY
+   HISTORY (Sidebar on Desktop)
 ====================== */
 
 #history-panel {
-  width: 180px;
+  width: 220px; /* Slightly wider for readability */
   padding: 8px;
   border-right: 2px solid #ddd;
   overflow-y: auto;
   font-size: 12px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.history-item {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
 }
 
 .history-item img {
   width: 100%;
   border-radius: 6px;
+  display: block;
 }
 
 /* ======================
@@ -66,89 +76,139 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
-/* image area = FIXED SPACE */
+#game-panel h2 {
+    margin: 5px 0;
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Image Area - Flex 1 lets it grow/shrink to fill space */
 #current {
-  height: 65%;
+  flex: 1; 
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  padding: 10px;
+  min-height: 0; /* Crucial for flex nested scrolling */
 }
 
 #current img {
-  max-width: 95%;
+  max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* buttons always visible */
+/* Buttons Area - Fixed size content */
 #buttons {
-  height: 35%;
-  width: 90%;
-  padding-bottom: 10px;
-  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent buttons from being squashed */
+  background: #f3f7f3; /* Ensure background covers content behind */
 }
 
 button {
   width: 100%;
-  padding: 9px;
-  margin: 5px 0;
-  font-size: 15px;
+  padding: 12px;
+  font-size: 16px;
   cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  transition: transform 0.1s;
+  touch-action: manipulation; /* Improves touch response */
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 .correct {
-  background: #4caf50;
+  background: #4caf50 !important;
   color: white;
+  border-color: #388e3c;
 }
 
 .wrong {
-  background: #e53935;
+  background: #e53935 !important;
   color: white;
+  border-color: #d32f2f;
 }
 
 /* ======================
-   MOBILE
+   MOBILE LAYOUT
 ====================== */
 
 @media (max-width: 800px) {
-
-  html {
-    font-size: 130%;
-  }
   
-  body {
-    overflow-y: auto;
+  h1 {
+    font-size: 1.2rem;
   }
 
   #layout {
     flex-direction: column;
-    height: auto;
+    /* Recalculate height to fill screen exactly */
+    height: calc(100dvh - 65px); 
   }
 
-  #history-panel {
+  /* 1. MOVE GAME TO TOP */
+  #game-panel {
+    order: 1;
     width: 100%;
+    flex: 1; /* Take up all available vertical space */
+  }
+
+  /* 2. MOVE HISTORY TO BOTTOM */
+  #history-panel {
+    order: 2;
+    width: 100%; /* Fix: Was stuck at 180px */
+    height: 120px; /* Fixed height strip at bottom */
     border-right: none;
     border-top: 2px solid #ddd;
-    max-height: 40vh;
+    display: flex; /* Horizontal scroll layout for history */
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 10px;
+    background: #f9f9f9;
   }
 
-  #current {
-    height: auto;
+  /* Adjust history items for horizontal strip */
+  .history-item {
+    min-width: 80px;
+    width: 80px;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  .history-item img {
+    height: 60px;
+    object-fit: cover;
   }
 
-  #current img {
-    max-height: 60vh;
+  /* Adjust buttons for touch */
+  #buttons {
+    padding: 5px 15px 10px 15px;
   }
-
+  
   button {
-    font-size: 18px;
-    padding: 16px;
-    margin: 10px 0;
-    border-radius: 14px;
+    padding: 14px; /* Larger touch target */
+    margin: 0; /* Gap handled by parent flex gap */
   }
 }
 </style>
@@ -156,7 +216,7 @@ button {
 
 <body>
 
-<h1>Guess the Lophophora Species</h1>
+<h1>Guess the Species</h1>
 
 <div id="scoreboard">
   Score: <b id="score">0</b> |
@@ -166,18 +226,11 @@ button {
 <div id="layout">
 
   <div id="history-panel">
-    <b>History</b>
-    <div id="history"></div>
-  </div>
+    </div>
 
   <div id="game-panel">
-
-    <h2>Current</h2>
-
     <div id="current">Loading…</div>
-
     <div id="buttons"></div>
-
   </div>
 </div>
 
@@ -226,15 +279,19 @@ async function refillQueue() {
       `?taxon_id=${s.taxon}` +
       `&quality_grade=research` +
       `&photos=true` +
-      `&identifications_count=5` +
-      `&per_page=200`;
+      `&identifications_count=3` + // Reduced slightly for better yield
+      `&per_page=50`;
 
-    const r = await fetch(url);
-    const d = await r.json();
+    try {
+        const r = await fetch(url);
+        const d = await r.json();
 
-    d.results.forEach(o => {
-      if (o.photos?.length) queue.push(o);
-    });
+        d.results.forEach(o => {
+          if (o.photos?.length) queue.push(o);
+        });
+    } catch (e) {
+        console.error("Fetch failed", e);
+    }
   }
 
   shuffle(queue);
@@ -256,14 +313,24 @@ async function loadRandom() {
 
   if (queue.length === 0) {
     seen.clear();
+    document.getElementById("current").innerText = "Refilling queue...";
     await refillQueue();
   }
 
   let obs;
 
+  // Simple safety break to prevent infinite loops if all seen
+  let attempts = 0;
   do {
     obs = queue.shift();
-  } while (seen.has(obs.id) && queue.length);
+    attempts++;
+  } while (seen.has(obs.id) && queue.length && attempts < 500);
+
+  if(!obs) {
+     // Failsafe if queue empty
+     await refillQueue();
+     obs = queue.shift();
+  }
 
   seen.add(obs.id);
 
@@ -335,19 +402,24 @@ function checkAnswer(btn, guess) {
    HISTORY
 ====================== */
 
-let history = [];
+let historyList = []; // Renamed variable to avoid conflict with window.history
 
 function renderHistory() {
-  const h = document.getElementById("history");
+  const h = document.getElementById("history-panel");
+  // Keep the heading on desktop, clear content 
+  // Simplified for this demo: just rebuild list
   h.innerHTML = "";
-
-  history.forEach(i => {
+  
+  // On Desktop we might want a header, on mobile maybe not. 
+  // Let's just render items.
+  
+  historyList.forEach(i => {
     const d = document.createElement("div");
     d.className = "history-item";
     d.innerHTML = `
       ${i.html}
-      <div><i>${i.species}</i></div>
-      <a href="${i.url}" target="_blank">View</a>
+      <div style="margin-top:2px;"><b>${i.species.split(' ')[1]}</b></div>
+      <a href="${i.url}" target="_blank" style="text-decoration:none; color:#2196F3;">View</a>
     `;
     h.appendChild(d);
   });
@@ -357,7 +429,48 @@ function renderHistory() {
    START
 ====================== */
 
+// Fix history variable scope issue
+historyList = []; 
+
+// Override original history logic slightly to use historyList
+window.checkAnswer = function(btn, guess) {
+  if (locked) return;
+  locked = true;
+
+  const correct = normalize(guess) === normalize(correctSpecies);
+
+  document.querySelectorAll("#buttons button").forEach(b => b.disabled = true);
+
+  if (correct) {
+    btn.classList.add("correct");
+    score += streak;
+    streak++;
+  } else {
+    btn.classList.add("wrong");
+    streak = 1;
+    document.querySelectorAll("#buttons button").forEach(b => {
+      if (normalize(b.textContent) === normalize(correctSpecies))
+        b.classList.add("correct");
+    });
+  }
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("streak").textContent = streak;
+
+  historyList.unshift({
+    html: currentHTML,
+    species: correctSpecies,
+    url: observationURL
+  });
+
+  if (historyList.length > 10) historyList.pop();
+  renderHistory();
+
+  setTimeout(loadRandom, 1400);
+};
+
 (async () => {
+  document.getElementById("current").innerText = "Loading...";
   await refillQueue();
   loadRandom();
 })();
@@ -365,5 +478,3 @@ function renderHistory() {
 
 </body>
 </html>
-
-
