@@ -6,47 +6,41 @@
 <title>Guess the Lophophora Species</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
 
 html, body {
   margin: 0;
   height: 100%;
   background: #f3f7f3;
-  overflow: hidden; /* Prevent body scroll */
+  overflow: hidden;
 }
 
-h1 {
-  margin: 0;
-  padding: 10px 0 5px 0;
-  text-align: center;
-  font-size: 1.5rem;
-  height: 40px;
-}
+h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; height: 40px; }
 
 #scoreboard {
   text-align: center;
   font-size: 14px;
   margin-bottom: 5px;
-  height: 20px;
+  height: 25px;
+}
+
+#reset-btn {
+    font-size: 10px;
+    padding: 2px 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    vertical-align: middle;
 }
 
 #layout {
   display: flex;
-  /* Use dvh for mobile address bar compatibility, fallback to vh */
-  height: calc(100vh - 70px); 
-  height: calc(100dvh - 70px);
+  height: calc(100dvh - 75px);
   width: 100%;
 }
 
-/* ======================
-   HISTORY (Sidebar on Desktop)
-====================== */
-
+/* HISTORY */
 #history-panel {
-  width: 220px; /* Slightly wider for readability */
+  width: 220px;
   padding: 8px;
   border-right: 2px solid #ddd;
   overflow-y: auto;
@@ -55,22 +49,10 @@ h1 {
   flex-shrink: 0;
 }
 
-.history-item {
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
-}
+.history-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+.history-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; display: block; }
 
-.history-item img {
-  width: 100%;
-  border-radius: 6px;
-  display: block;
-}
-
-/* ======================
-   GAME PANEL
-====================== */
-
+/* GAME */
 #game-panel {
   flex: 1;
   display: flex;
@@ -80,13 +62,6 @@ h1 {
   overflow: hidden;
 }
 
-#game-panel h2 {
-    margin: 5px 0;
-    font-size: 1rem;
-    color: #555;
-}
-
-/* Image Area - Flex 1 lets it grow/shrink to fill space */
 #current {
   flex: 1; 
   width: 100%;
@@ -95,18 +70,18 @@ h1 {
   align-items: center;
   overflow: hidden;
   padding: 10px;
-  min-height: 0; /* Crucial for flex nested scrolling */
+  min-height: 0;
 }
 
 #current img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  object-position: center;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* Buttons Area - Fixed size content */
 #buttons {
   width: 100%;
   max-width: 500px;
@@ -114,11 +89,11 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-shrink: 0; /* Prevent buttons from being squashed */
-  background: #f3f7f3; /* Ensure background covers content behind */
+  flex-shrink: 0;
+  background: #f3f7f3;
 }
 
-button {
+button.answer-btn {
   width: 100%;
   padding: 12px;
   font-size: 16px;
@@ -127,89 +102,25 @@ button {
   border-radius: 8px;
   background: white;
   transition: transform 0.1s;
-  touch-action: manipulation; /* Improves touch response */
+  touch-action: manipulation;
 }
 
-button:active {
-  transform: scale(0.98);
-}
-
-.correct {
-  background: #4caf50 !important;
-  color: white;
-  border-color: #388e3c;
-}
-
-.wrong {
-  background: #e53935 !important;
-  color: white;
-  border-color: #d32f2f;
-}
-
-/* ======================
-   MOBILE LAYOUT
-====================== */
+button:active { transform: scale(0.98); }
+.correct { background: #4caf50 !important; color: white; border-color: #388e3c; }
+.wrong { background: #e53935 !important; color: white; border-color: #d32f2f; }
 
 @media (max-width: 800px) {
-  
-  h1 {
-    font-size: 1.2rem;
-  }
-
-  #layout {
-    flex-direction: column;
-    /* Recalculate height to fill screen exactly */
-    height: calc(100dvh - 65px); 
-  }
-
-  /* 1. MOVE GAME TO TOP */
-  #game-panel {
-    order: 1;
-    width: 100%;
-    flex: 1; /* Take up all available vertical space */
-  }
-
-  /* 2. MOVE HISTORY TO BOTTOM */
+  #layout { flex-direction: column; height: calc(100dvh - 75px); }
+  #game-panel { order: 1; width: 100%; flex: 1; }
   #history-panel {
-    order: 2;
-    width: 100%; /* Fix: Was stuck at 180px */
-    height: 120px; /* Fixed height strip at bottom */
-    border-right: none;
-    border-top: 2px solid #ddd;
-    display: flex; /* Horizontal scroll layout for history */
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 10px;
-    background: #f9f9f9;
+    order: 2; width: 100%; height: 120px; border-right: none;
+    border-top: 2px solid #ddd; display: flex; flex-direction: row;
+    overflow-x: auto; overflow-y: hidden; gap: 10px; background: #f9f9f9;
   }
-
-  /* Adjust history items for horizontal strip */
-  .history-item {
-    min-width: 80px;
-    width: 80px;
-    font-size: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-bottom: none;
-    margin-bottom: 0;
-  }
-  
-  .history-item img {
-    height: 60px;
-    object-fit: cover;
-  }
-
-  /* Adjust buttons for touch */
-  #buttons {
-    padding: 5px 15px 10px 15px;
-  }
-  
-  button {
-    padding: 14px; /* Larger touch target */
-    margin: 0; /* Gap handled by parent flex gap */
-  }
+  .history-item { min-width: 80px; width: 80px; font-size: 10px; }
+  .history-item img { height: 60px; }
+  #buttons { padding: 5px 10px 8px 10px; gap: 5px; }
+  button.answer-btn { padding: 10px; font-size: 14px; border-radius: 6px; }
 }
 </style>
 </head>
@@ -219,15 +130,12 @@ button:active {
 <h1>Guess the Species</h1>
 
 <div id="scoreboard">
-  Score: <b id="score">0</b> |
-  Streak: <b id="streak">1</b>
+  Score: <b id="score">0</b> | Streak: <b id="streak">1</b>
+  <button id="reset-btn" onclick="clearMemory()">Reset Seen Data</button>
 </div>
 
 <div id="layout">
-
-  <div id="history-panel">
-    </div>
-
+  <div id="history-panel"></div>
   <div id="game-panel">
     <div id="current">Loading…</div>
     <div id="buttons"></div>
@@ -235,10 +143,6 @@ button:active {
 </div>
 
 <script>
-/* ======================
-   TAXA
-====================== */
-
 const speciesPool = [
   { name: "Lophophora williamsii", taxon: 164777 },
   { name: "Lophophora fricii", taxon: 439808 },
@@ -253,47 +157,53 @@ let correctSpecies = "";
 let observationURL = "";
 let currentHTML = "";
 let locked = false;
-
+let historyList = [];
 let score = 0;
 let streak = 1;
 
-/* normalize subspecies */
-function normalize(name) {
-  return name
-    .toLowerCase()
-    .replace("lophophora", "")
-    .trim()
-    .split(" ")[0];
+// --- PERSISTENCE LOGIC ---
+function loadSeenFromStorage() {
+    const data = localStorage.getItem('lophophora_seen_ids');
+    if (data) {
+        const arr = JSON.parse(data);
+        seen = new Set(arr);
+    }
 }
 
-/* ======================
-   FETCH
-====================== */
+function saveSeenToStorage() {
+    const arr = Array.from(seen);
+    localStorage.setItem('lophophora_seen_ids', JSON.stringify(arr));
+}
+
+function clearMemory() {
+    if(confirm("Clear all 'seen' history? You will see repeats again.")) {
+        localStorage.removeItem('lophophora_seen_ids');
+        seen.clear();
+        location.reload();
+    }
+}
+// -------------------------
+
+function normalize(name) {
+  return name.toLowerCase().replace("lophophora", "").trim().split(" ")[0];
+}
 
 async function refillQueue() {
   queue = [];
-
   for (const s of speciesPool) {
-    const url =
-      `https://api.inaturalist.org/v1/observations` +
-      `?taxon_id=${s.taxon}` +
-      `&quality_grade=research` +
-      `&photos=true` +
-      `&identifications_count=3` + // Reduced slightly for better yield
-      `&per_page=50`;
-
+    // Increased per_page slightly to account for many seen items
+    const url = `https://api.inaturalist.org/v1/observations?taxon_id=${s.taxon}&quality_grade=research&photos=true&identifications_count=3&per_page=100`;
     try {
         const r = await fetch(url);
         const d = await r.json();
-
-        d.results.forEach(o => {
-          if (o.photos?.length) queue.push(o);
+        // Filter out items already in the 'seen' Set immediately
+        d.results.forEach(o => { 
+            if (o.photos?.length && !seen.has(o.id)) {
+                queue.push(o); 
+            }
         });
-    } catch (e) {
-        console.error("Fetch failed", e);
-    }
+    } catch (e) { console.error(e); }
   }
-
   shuffle(queue);
 }
 
@@ -304,141 +214,43 @@ function shuffle(a) {
   }
 }
 
-/* ======================
-   LOAD
-====================== */
-
 async function loadRandom() {
   locked = false;
-
   if (queue.length === 0) {
-    seen.clear();
-    document.getElementById("current").innerText = "Refilling queue...";
+    document.getElementById("current").innerText = "Finding new plants...";
     await refillQueue();
+    // If even after refill we have nothing (unlikely), reset seen
+    if (queue.length === 0) {
+        seen.clear();
+        await refillQueue();
+    }
   }
 
-  let obs;
-
-  // Simple safety break to prevent infinite loops if all seen
-  let attempts = 0;
-  do {
-    obs = queue.shift();
-    attempts++;
-  } while (seen.has(obs.id) && queue.length && attempts < 500);
-
-  if(!obs) {
-     // Failsafe if queue empty
-     await refillQueue();
-     obs = queue.shift();
-  }
-
+  let obs = queue.shift();
   seen.add(obs.id);
+  saveSeenToStorage(); // Save immediately after picking
 
   const photo = obs.photos[0].url.replace("square", "large");
-
-  document.getElementById("current").innerHTML =
-    `<img src="${photo}">`;
-
+  document.getElementById("current").innerHTML = `<img src="${photo}">`;
   correctSpecies = obs.taxon.name;
   observationURL = obs.uri;
   currentHTML = `<img src="${photo}">`;
 
   const buttons = document.getElementById("buttons");
   buttons.innerHTML = "";
-
   speciesPool.forEach(s => {
     const b = document.createElement("button");
+    b.className = "answer-btn";
     b.textContent = s.name;
     b.onclick = () => checkAnswer(b, s.name);
     buttons.appendChild(b);
   });
 }
 
-/* ======================
-   ANSWER
-====================== */
-
 function checkAnswer(btn, guess) {
   if (locked) return;
   locked = true;
-
-  const correct =
-    normalize(guess) === normalize(correctSpecies);
-
-  document.querySelectorAll("#buttons button")
-    .forEach(b => b.disabled = true);
-
-  if (correct) {
-    btn.classList.add("correct");
-    score += streak;
-    streak++;
-  } else {
-    btn.classList.add("wrong");
-    streak = 1;
-
-    document.querySelectorAll("#buttons button")
-      .forEach(b => {
-        if (normalize(b.textContent) === normalize(correctSpecies))
-          b.classList.add("correct");
-      });
-  }
-
-  document.getElementById("score").textContent = score;
-  document.getElementById("streak").textContent = streak;
-
-  history.unshift({
-    html: currentHTML,
-    species: correctSpecies,
-    url: observationURL
-  });
-
-  if (history.length > 10) history.pop();
-  renderHistory();
-
-  setTimeout(loadRandom, 1400);
-}
-
-/* ======================
-   HISTORY
-====================== */
-
-let historyList = []; // Renamed variable to avoid conflict with window.history
-
-function renderHistory() {
-  const h = document.getElementById("history-panel");
-  // Keep the heading on desktop, clear content 
-  // Simplified for this demo: just rebuild list
-  h.innerHTML = "";
-  
-  // On Desktop we might want a header, on mobile maybe not. 
-  // Let's just render items.
-  
-  historyList.forEach(i => {
-    const d = document.createElement("div");
-    d.className = "history-item";
-    d.innerHTML = `
-      ${i.html}
-      <div style="margin-top:2px;"><b>${i.species.split(' ')[1]}</b></div>
-      <a href="${i.url}" target="_blank" style="text-decoration:none; color:#2196F3;">View</a>
-    `;
-    h.appendChild(d);
-  });
-}
-
-/* ======================
-   START
-====================== */
-
-// Fix history variable scope issue
-historyList = []; 
-
-// Override original history logic slightly to use historyList
-window.checkAnswer = function(btn, guess) {
-  if (locked) return;
-  locked = true;
-
   const correct = normalize(guess) === normalize(correctSpecies);
-
   document.querySelectorAll("#buttons button").forEach(b => b.disabled = true);
 
   if (correct) {
@@ -449,32 +261,35 @@ window.checkAnswer = function(btn, guess) {
     btn.classList.add("wrong");
     streak = 1;
     document.querySelectorAll("#buttons button").forEach(b => {
-      if (normalize(b.textContent) === normalize(correctSpecies))
-        b.classList.add("correct");
+      if (normalize(b.textContent) === normalize(correctSpecies)) b.classList.add("correct");
     });
   }
 
   document.getElementById("score").textContent = score;
   document.getElementById("streak").textContent = streak;
-
-  historyList.unshift({
-    html: currentHTML,
-    species: correctSpecies,
-    url: observationURL
-  });
-
+  historyList.unshift({ html: currentHTML, species: correctSpecies, url: observationURL });
   if (historyList.length > 10) historyList.pop();
   renderHistory();
-
   setTimeout(loadRandom, 1400);
-};
+}
+
+function renderHistory() {
+  const h = document.getElementById("history-panel");
+  h.innerHTML = "";
+  historyList.forEach(i => {
+    const d = document.createElement("div");
+    d.className = "history-item";
+    d.innerHTML = `${i.html}<div style="margin-top:2px;"><b>${i.species.split(' ')[1]}</b></div><a href="${i.url}" target="_blank" style="text-decoration:none; color:#2196F3;">View</a>`;
+    h.appendChild(d);
+  });
+}
 
 (async () => {
+  loadSeenFromStorage();
   document.getElementById("current").innerText = "Loading...";
   await refillQueue();
   loadRandom();
 })();
 </script>
-
 </body>
 </html>
