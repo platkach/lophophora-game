@@ -64,8 +64,6 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
 }
 
 .history-item:hover { opacity: 0.8; }
-
-/* Border logic for history results */
 .hist-correct { border: 3px solid #4caf50; }
 .hist-wrong { border: 3px solid #e53935; }
 
@@ -81,24 +79,29 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
   overflow: hidden;
 }
 
+/* Updated current container to allow panning/scrolling */
 #current {
   flex: 1; 
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
+  overflow: auto; /* Allows the finger-drag/scroll */
+  display: block; /* Changed from flex to allow natural image overflow */
   padding: 10px;
   min-height: 0;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  cursor: grab;
 }
 
+#current:active { cursor: grabbing; }
+
 #current img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; 
-  object-position: center;
+  display: block;
+  margin: 0 auto;
+  min-width: 100%;
+  min-height: 100%;
+  /* Contain ensures we don't lose the plant, 
+     but min-width/height keeps it fill-ready */
+  object-fit: contain; 
   border-radius: 8px;
-  transform: scale(0.95);
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
@@ -111,6 +114,7 @@ h1 { margin: 0; padding: 10px 0 5px 0; text-align: center; font-size: 1.5rem; he
   gap: 8px;
   flex-shrink: 0;
   background: #f3f7f3;
+  z-index: 10;
 }
 
 button.answer-btn {
@@ -226,8 +230,10 @@ function shuffle(a) {
 
 async function loadRandom() {
   locked = false;
+  const currentDiv = document.getElementById("current");
+  
   if (queue.length === 0) {
-    document.getElementById("current").innerText = "Finding new plants...";
+    currentDiv.innerText = "Finding new plants...";
     await refillQueue();
     if (queue.length === 0) { seen.clear(); await refillQueue(); }
   }
@@ -237,7 +243,16 @@ async function loadRandom() {
   saveSeenToStorage();
 
   const photo = obs.photos[0].url.replace("square", "large");
-  document.getElementById("current").innerHTML = `<img src="${photo}">`;
+  
+  // Set image and reset scroll position to center
+  currentDiv.innerHTML = `<img src="${photo}" id="active-img">`;
+  const img = document.getElementById("active-img");
+  
+  img.onload = () => {
+    currentDiv.scrollLeft = (img.scrollWidth - currentDiv.clientWidth) / 2;
+    currentDiv.scrollTop = (img.scrollHeight - currentDiv.clientHeight) / 2;
+  };
+
   correctSpecies = obs.taxon.name;
   observationURL = obs.uri;
   currentHTML = `<img src="${photo}">`;
@@ -274,7 +289,6 @@ function checkAnswer(btn, guess) {
   document.getElementById("score").textContent = score;
   document.getElementById("streak").textContent = streak;
   
-  // Add to history with result status
   historyList.unshift({ 
     html: currentHTML, 
     species: correctSpecies, 
